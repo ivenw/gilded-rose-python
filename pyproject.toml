@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "gilded-rose"
+version = "0.1.0"
+description = ""
+authors = ["Iven Winkelmann <winkelmann.iven@gmail.com>"]
+readme = "README.md"
+packages = [{include = "gilded_rose"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pytest = "^7.4.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
