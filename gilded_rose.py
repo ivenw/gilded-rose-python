@@ -3,7 +3,6 @@
 
 from typing import Iterable, Protocol
 
-
 AGED_BRIE = "Aged Brie"
 BACKSTAGE_PASSES = "Backstage passes to a TAFKAL80ETC concert"
 SULFURAS = "Sulfuras, Hand of Ragnaros"
@@ -20,45 +19,50 @@ class Item:
         return "%s, %s, %s" % (self.name, self.sell_in, self.quality)
 
 
-class GildedRose:
-    def __init__(self, items: Iterable[Item]):
-        self.items = items
-
-    def update_quality(self) -> None:
-        for item in self.items:
-            get_item_updater(item).update(item)
-
-
 class ItemUpdater(Protocol):
     @staticmethod
-    def update(item: Item) -> None:
+    def update_sell_in(item: Item) -> None:
+        ...
+
+    @staticmethod
+    def update_quality(item: Item) -> None:
+        ...
+
+    @classmethod
+    def update(cls, item: Item) -> None:
         ...
 
 
-class DefaultUpdater:
+class DefaultUpdater(ItemUpdater):
     @staticmethod
-    def update(item: Item) -> None:
-        update_sell_in(item)
+    def update_sell_in(item: Item) -> None:
+        item.sell_in -= 1
+
+    @staticmethod
+    def update_quality(item: Item) -> None:
         if item.sell_in >= 0:
             update_quality(item, -1)
         else:
             update_quality(item, -2)
 
+    @classmethod
+    def update(cls, item: Item) -> None:
+        cls.update_sell_in(item)
+        cls.update_quality(item)
 
-class AgedBrieUpdater:
+
+class AgedBrieUpdater(DefaultUpdater):
     @staticmethod
-    def update(item: Item) -> None:
-        update_sell_in(item)
+    def update_quality(item: Item) -> None:
         if item.sell_in >= 0:
             update_quality(item, 1)
         else:
             update_quality(item, 2)
 
 
-class BackstagePassUpdater:
+class BackstagePassUpdater(DefaultUpdater):
     @staticmethod
-    def update(item: Item) -> None:
-        update_sell_in(item)
+    def update_quality(item: Item) -> None:
         if item.sell_in >= 10:
             update_quality(item, 1)
         elif item.sell_in >= 5:
@@ -69,24 +73,32 @@ class BackstagePassUpdater:
             item.quality = 0
 
 
-class SulfurasUpdater:
+class SulfurasUpdater(DefaultUpdater):
     @staticmethod
-    def update(_: Item) -> None:
+    def update_sell_in(_: Item) -> None:
+        pass
+
+    @staticmethod
+    def update_quality(_: Item) -> None:
         pass
 
 
-class ConjuredUpdater:
+class ConjuredUpdater(DefaultUpdater):
     @staticmethod
-    def update(item: Item) -> None:
-        update_sell_in(item)
+    def update_quality(item: Item) -> None:
         if item.sell_in >= 0:
             update_quality(item, -2)
         else:
             update_quality(item, -4)
 
 
-def update_sell_in(item: Item) -> None:
-    item.sell_in -= 1
+class GildedRose:
+    def __init__(self, items: Iterable[Item]):
+        self.items = items
+
+    def update_quality(self) -> None:
+        for item in self.items:
+            get_item_updater(item).update(item)
 
 
 def update_quality(item: Item, amount: int) -> None:
